@@ -14,7 +14,6 @@ Django==2.2.2
 django-background-tasks==1.2.0
 django-compat==1.0.15
 django-cors-headers==3.0.2
--e git+https://github.com/mjs7231/django-dbbackup.git@77de209e2d5317e51510d0f888e085ee0c400d66#egg=django_dbbackup
 django-filter==2.2.0
 django-filters==0.2.1
 django-import-export==1.2.0
