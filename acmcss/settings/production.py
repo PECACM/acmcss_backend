@@ -13,8 +13,12 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+from dotenv import load_dotenv
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+dotenv_path = os.path.join(BASE_DIR, '.env')
+load_dotenv(dotenv_path)
 
 # Quick-start development settings - unsuitable for production.py
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
@@ -23,9 +27,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 SECRET_KEY = 'fktv0iw%mpfe$@i$nb@ln14wxiekx^=q0msiy6mztj@vr6vr98'
 
 # SECURITY WARNING: don't run with debug turned on in production.py!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['pecfest.in', 'pecfest']
+ALLOWED_HOSTS = []
 
 # Application definition
 
@@ -54,7 +58,10 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend'
-    ]
+    ],
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    )
 }
 
 MIDDLEWARE = [
@@ -72,10 +79,7 @@ MIDDLEWARE = [
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ORIGIN_WHITELIST = (
-    'http://13.232.240.212',
-    'http://localhost:8800',
-    'https://pecfest.in',
-    'http://pecfest.in',
+
 )
 
 ROOT_URLCONF = 'acmcss.urls'
@@ -83,7 +87,7 @@ ROOT_URLCONF = 'acmcss.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['templates'],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -106,7 +110,7 @@ WSGI_APPLICATION = 'acmcss.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'PECFEST',
+        'NAME': 'ADD_DATABASE_NAME_HERE_MYSQL',
         'OPTIONS': {
             'read_default_file': '/etc/mysql/my.cnf',
         }
@@ -154,7 +158,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-STATIC_ROOT = 'static'
+if not os.path.exists(os.path.join(BASE_DIR, 'acmcss/settings/local.py')):
+    STATIC_ROOT = 'static'
 
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
@@ -163,8 +168,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'webmasterpecfest19@gmail.com'
-EMAIL_HOST_PASSWORD = 'kvkxgajmkrlpihtq'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'

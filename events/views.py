@@ -1,15 +1,18 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
+from django.shortcuts import render
 from knox.auth import TokenAuthentication
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from accounts.models import Team
 from events.filters import EventFilter
-from events.models import Event, Registration, Club, Sponsor, EventCategory, EventType, Brochure
+from events.models import Event, Registration, Club, PastSponsor, NewSponsor, EventCategory, EventType, Brochure, \
+    SponsorPartnership
 from events.serializers import get_dynamic_serializer, UserSerializer, EventSerializer, EventTypeSerializer, \
     EventCategorySerializer
-from events.tasks import notify_user
+from events.tasks import registration_user_notify, eventbeep_api
 
 AUTH_USER_MODEL = get_user_model()
 
@@ -27,7 +30,7 @@ class EventCategoryViewSet(viewsets.ModelViewSet):
 
 
 class EventTypeViewSet(viewsets.ModelViewSet):
-    queryset = EventType.objects.all()
+    queryset = EventType.objects.order_by('name').all()
     serializer_class = EventTypeSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
@@ -59,12 +62,18 @@ class ClubViewSet(viewsets.ModelViewSet):
 class RegistrationViewSet(viewsets.ModelViewSet):
     queryset = Registration.objects.all()
     serializer_class = get_dynamic_serializer(Registration)
+    permission_classes = [permissions.IsAuthenticated]
+
+
+class PastSponsorViewSet(viewsets.ModelViewSet):
+    queryset = PastSponsor.objects.all()
+    serializer_class = get_dynamic_serializer(PastSponsor)
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
-class SponsorViewSet(viewsets.ModelViewSet):
-    queryset = Sponsor.objects.all()
-    serializer_class = get_dynamic_serializer(Sponsor)
+class NewSponsorViewSet(viewsets.ModelViewSet):
+    queryset = NewSponsor.objects.all()
+    serializer_class = get_dynamic_serializer(NewSponsor)
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
@@ -90,7 +99,8 @@ class RegisterEvent(APIView):
             "response": False,
         }
 
-        if not Registration.objects.filter(registered_event=event, participant=user).exists():
+        allRegistrationsWithThisEvent = Registration.objects.filter(registered_event=event)
+        if not allRegistrationsWithThisEvent.filter(team__members__username__exact=user.username).exists():
             context = {
                 "response": True,
             }
@@ -98,29 +108,77 @@ class RegisterEvent(APIView):
         return Response(context, status=status.HTTP_200_OK)
 
     def post(self, request, event_id):
-        data = request.data
 
-        if 'username' not in request.data.keys():
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        try:
+            data = request.data
 
-        user = User.objects.get(username=request.data['username'])
-        event = Event.objects.get(id=event_id)
+            response = {"errors": []}
+            if 'team' not in data.keys() and 'teamName' not in data.keys():
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-        if not user or not event:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            event = Event.objects.get(id=event_id)
+            team = data['team']
 
-        context = {
-            "response": False,
-        }
+            allRegistrationsWithThisEvent = Registration.objects.filter(registered_event=event)
 
-        if not Registration.objects.filter(registered_event=event, participant=user).exists():
-            Registration.objects.create(registered_event=event, participant=user).save()
+            if Team.objects. \
+                    filter(name=data['teamName']). \
+                    filter(registrations__registered_event=event).exists():
+                response["errors"].append("Team Name already taken!")
+                return Response(response, status=status.HTTP_302_FOUND)
 
-            context = {
-                "response": True,
-            }
+            context = {"errors": []}
 
-            notify_user(event_id, data['username'])
-            return Response(context, status=status.HTTP_201_CREATED)
-        else:
-            return Response(context, status=status.HTTP_302_FOUND)
+            if len(team) != len(set(team)):
+                response["errors"].append("Duplicate IDs Detected!")
+                return Response(response, status=status.HTTP_404_NOT_FOUND)
+
+            for member in team:
+                if not User.objects.filter(username__exact=member).exists():
+                    response["errors"].append("User with ID " + member + " doesn't exist!")
+                    return Response(response, status=status.HTTP_404_NOT_FOUND)
+
+                if allRegistrationsWithThisEvent. \
+                        filter(team__members__username__exact=member).exists():
+                    response["errors"].append(member + " is already registered with this event!")
+                    return Response(response, status=status.HTTP_302_FOUND)
+
+            registration = Registration.objects.create(
+                registered_event=event,
+                team_leader=User.objects.get(username__exact=team[0])
+            )
+            team_reg = Team.objects.create()
+            team_reg.name = data['teamName']
+            team_reg.save()
+
+            for member in team:
+                team_reg.members.add(User.objects.get(username__exact=member))
+                registration_user_notify(event_id, member)
+                eventbeep_api(event_id, member)
+
+            registration.team = team_reg
+            registration.save()
+            context['response'] = True
+            return Response(context, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            print("Exception occurred: " + str(e))
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+def sponsor_page(request):
+    template_name = "sponsors/sponsors.html"
+
+    pastSponsors = PastSponsor.objects.all()
+
+    context = {
+        'pastSponsors': pastSponsors,
+        'newSponsors': {}
+    }
+
+    for sponsorPartner in SponsorPartnership.objects.all():
+        queryset = NewSponsor.objects.filter(partnership=sponsorPartner).all()
+        if queryset.exists():
+            context['newSponsors'][sponsorPartner.name] = queryset
+
+    return render(request, template_name, context)

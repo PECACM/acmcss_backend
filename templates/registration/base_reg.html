@@ -1,0 +1,47 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>PECFEST 2019</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!--===============================================================================================-->
+    <link rel="icon" type="image/png" href="{% static 'registration/images/icons/favicon.ico' %}" />
+
+    <!--===============================================================================================-->
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{% static 'registration/fonts/font-awesome-4.7.0/css/font-awesome.min.css' %}"
+    />
+    <!--===============================================================================================-->
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{% static 'registration/fonts/iconic/css/material-design-iconic-font.min.css' %}"
+    />
+    <!--===============================================================================================-->
+    <!--===============================================================================================-->
+    <link rel="stylesheet" type="text/css" href="{% static 'registration/css/util.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'registration/css/main.css' %}" />
+    <!--===============================================================================================-->
+  </head>
+  <body>
+    <div
+      class="container-login100"
+      style='background-image: url( "{% static 'registration/images/bg.jpeg' %}"); background-position: 50% 50%;
+    background-repeat: no-repeat;background-size: contain;'
+    >
+      <div class="wrap-login100 p-l-55 p-r-55 p-t-80 p-b-30">
+        {% block element %}{% endblock %}
+      </div>
+    </div>
+
+    <div id="dropDownSelect1"></div>
+
+    <!--===============================================================================================-->
+    <script src="{% static 'registration/js/main.js' %}"></script>
+  </body>
+</html>
+

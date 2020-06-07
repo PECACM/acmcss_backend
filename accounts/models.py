@@ -22,5 +22,20 @@ class Participant(models.Model):
         MinValueValidator(limit_value=0, message="Gender Not valid")
     ])
 
+    class Meta:
+        permissions = (
+            ('allowed_import', "Imports are allowed"),
+        )
+
     def __str__(self):
-        return str(self.pk)
+        return ("Name: " + self.user.first_name + " | " if self.user.first_name else "") + "Username: " + self.user.username
+
+
+class Team(models.Model):
+
+    name = models.CharField(max_length=100)
+    members = models.ManyToManyField(to=User, related_name="team")
+
+    def __str__(self):
+
+        return self.name + " - Events: " + ', '.join([i for i in self.registrations.values_list('registered_event__name', flat=True)])

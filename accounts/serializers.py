@@ -20,13 +20,6 @@ def get_all_model_serializers():
     return [get_dynamic_serializer(model) for model in all_models]
 
 
-# # user serializer
-# class UserSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = User
-#         fields = ('id', 'username', 'email', 'first_name', 'last_name', 'participant')
-
-
 # Register serializer
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:

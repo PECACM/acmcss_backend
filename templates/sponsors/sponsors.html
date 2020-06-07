@@ -1,0 +1,187 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>PECFest 2019 | Sponsors</title>
+    <meta charset="utf-8"/>
+    <meta
+            name="google-site-verification"
+            content="y6S-k8gi7C6tuBfwev8Uu2pElpohVKTmuCQTYBCkh80"
+    />
+    <meta
+            name="description"
+            content="PECFEST, PEC | North India's Largest College Fest"
+    />
+    <meta property="og:title" content="PECFEST 2019"/>
+    <meta property="og:url" content="https://www.pecfest.in"/>
+    <meta
+            property="og:description"
+            content="PECFEST, 8th to 10th November, 2019: A Tropical Extravaganza"
+    />
+    <meta property="og:image" content="{% static 'images/logosun.png' %}"/>
+    <link rel="shortcut icon" href="{% static 'images/logo_icon.ico' %}"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link
+            rel="stylesheet"
+            href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css"
+    />
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Kaushan+Script&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Merienda:700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'sponsors/style.css' %}">
+    <style>
+        #box-two p {
+            text-align: center;
+            font-size: 45px;
+            font-weight: bolder;
+            font-family: 'Kaushan Script', cursive;
+        }
+
+        #sponsor-header p {
+            text-align: center;
+            font-size: 40px;
+            font-family: 'Kaushan Script', cursive;
+            color: lightseagreen;
+        }
+
+        #box-two {
+            color: #ff4764;
+            background-color: whitesmoke;
+        }
+
+        body {
+            background-color: whitesmoke;
+        }
+    </style>
+
+</head>
+
+<body>
+
+<div id="box-two">
+
+    <p>PECFEST'19 SPONSORS</p>
+
+</div>
+
+
+<div class="outer-container home-page">
+    <div class="container-fluid">
+
+        {% for partner_name, queryset in  newSponsors.items %}
+            {% if partner_name != "Title" %}
+                <div class="row">
+                    <div id="sponsor-header">
+                        <p>{{ partner_name }} Sponsor</p>
+                    </div>
+                    {% for title in queryset %}
+                        <div class="col-12 col-md-6 col-lg-3 no-padding">
+                            <div class="portfolio-content">
+                                <figure>
+                                    <img src="{{ title.logo.url }}"
+                                         alt="">
+                                </figure>
+
+                                <div class="entry-content flex flex-column align-items-center justify-content-center">
+
+                                </div><!-- .entry-content -->
+                            </div><!-- .portfolio-content -->
+                        </div><!-- .col -->
+                    {% endfor %}
+                </div><!-- .row -->
+            {% endif %}
+        {% endfor %}
+
+        {% if pastSponsors %}
+            <div class="row">
+                <div id="sponsor-header">
+                    <p>Past Sponsors</p>
+                </div>
+                {% for sponsor in pastSponsors %}
+                    <div class="col-12 col-md-6 col-lg-3 no-padding">
+                        <div class="portfolio-content">
+                            <figure>
+                                <img src="{{ sponsor.logo.url }}"
+                                     alt="">
+                            </figure>
+
+                            <div class="entry-content flex flex-column align-items-center justify-content-center">
+
+                            </div><!-- .entry-content -->
+                        </div><!-- .portfolio-content -->
+                    </div><!-- .col -->
+                {% endfor %}
+            </div><!-- .row -->
+        {% endif %}
+
+    </div><!-- .container-fluid -->
+</div><!-- .outer-container -->
+
+</body>
+</html>
+
+
+{#{% for partner_name, queryset in  newSponsors.items %}#}
+{##}
+{#    {% if partner_name == "Title" %}#}
+{#        {% for title in queryset %}#}
+{#            <section id="#" class="sponsor-section">#}
+{#                <div class="container">#}
+{#                    <div class="row">#}
+{#                        <div class="col-md-12 text-center">#}
+{#                            <h2 class="sponsor-heading">{{ partner_name }} Sponsor</h2>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                    <div class="row">#}
+{#                        <div class="col-md-12 sponsor-item">#}
+{#                            <div class="helper"></div>#}
+{#                            <img class="img-thumbnail img-responsive" style="max-height: 350px"#}
+{#                                 src="{{ title.logo.url }}" alt="sponsor-logo"/>#}
+{#                            <div class="sponsor-caption">#}
+{#                                <h4>{{ title.name }}</h4>#}
+{#                                {% if title.tag_line %}#}
+{#                                    <p>{{ title.tag_line }}</p>#}
+{#                                {% endif %}#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </section>#}
+{#        {% endfor %}#}
+{#    {% else %}#}
+{#        <!-- Copy new section from here -->#}
+{#        <section id="#food" class="sponsor-section">#}
+{#            <div class="container">#}
+{#                <div class="row">#}
+{#                    <div class="col-md-12 text-center">#}
+{#                        <h2 class="sponsor-heading">Co-Powered By</h2>#}
+{#                    </div>#}
+{#                </div>#}
+{#                <div class="row">#}
+{#                    <!-- Start copying from here for 3 X 3 sponsor -->#}
+{#                    {% for sponsor in queryset %}#}
+{#                        <div class="col-md-4 col-sm-6 sponsor-item">#}
+{#                            <div class="helper"></div>#}
+{#                            <img class="img-thumbnail img-responsive" style="max-height: 180px"#}
+{#                                 src="{{ sponsor.logo.url }}" alt="sponsor-logo"/>#}
+{#                            <div class="sponsor-caption">#}
+{#                                <h4>{{ sponsor.name }}</h4>#}
+{#                                {% if sponsor.tag_line %}#}
+{#                                    <p>{{ sponsor.tag_line }}</p>#}
+{#                                {% endif %}#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    {% endfor %}#}
+{#                    <!-- End copying here for one sponsor -->#}
+{#                </div>#}
+{#            </div>#}
+{#        </section>#}
+{#        <!-- End copying section here -->#}
+{#    {% endif %}#}
+{#{% endfor %}#}
+{##}

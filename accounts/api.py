@@ -5,6 +5,7 @@ from rest_framework.response import Response
 
 from accounts.models import Participant
 from events.serializers import UserSerializer
+from events.tasks import new_user_notify
 from .serializers import RegisterSerializer, LoginSerializer, ParticipantSerializer
 
 
@@ -14,11 +15,27 @@ class RegisterAPI(generics.GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        response = {
+            "errors": [],
+        }
+
+        serializer_validation = serializer.is_valid(raise_exception=False)
+
+        if not serializer_validation:
+            response["errors"].append("User with this username already exists!")
+
+        if User.objects.filter(email__exact=request.data['email']).exists():
+            response["errors"].append("User with this email already exists!")
+            serializer_validation = False
+
+        if not serializer_validation:
+            return Response(response, status=status.HTTP_404_NOT_FOUND)
+
         user = serializer.save()
         participant = Participant.objects.create()
         participant.user = user
         participant.save()
+        new_user_notify(user.username)
 
         _, token = AuthToken.objects.create(user)
         return Response({
@@ -66,7 +83,14 @@ class UserRegisterAPI(generics.GenericAPIView):
 
         data = request.data
         user = User.objects.get(pk=data['id'])
+        if Participant.objects.exclude(user=user).filter(contactNumber=data['contactNumber']).exists():
+            return Response({
+                "errors": ["Contact Number already exists!"]
+            },
+                status=status.HTTP_404_NOT_FOUND)
+
         participant = Participant.objects.get(user=user)
+
         for key in data.keys():
             if key != "id":
                 val = data[key]
@@ -81,5 +105,6 @@ class UserRegisterAPI(generics.GenericAPIView):
         user.last_name = data['lastName']
         user.save()
         return Response({
+            "errors": [],
             "user": UserSerializer(user, context=self.get_serializer_context()).data,
         })
