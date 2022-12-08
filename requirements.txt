@@ -4,7 +4,7 @@ astroid==2.2.5
 backports.csv==1.0.7
 bcrypt==3.1.7
 blinker==1.4
-certifi==2019.3.9
+certifi==2022.12.7
 cffi==1.12.3
 chardet==3.0.4
 colorama==0.4.1
